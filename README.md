@@ -83,3 +83,7 @@ services:
 ```
 
 Expose its ports through the `vpn` service's `ports:` block, not the service itself.
+
+---
+
+**Disclosure:** hello I vibe coded this while watching my wife play Tomodachi Life. I have no idea if the code is secure, I have no idea if it's free of bugs. All I can tell you is that this is the process I followed to get Wireguard working with Private Internet Access despite not being officially supported. Any feedback or clean up is more than welcome.
