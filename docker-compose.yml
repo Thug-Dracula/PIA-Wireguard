@@ -1,0 +1,49 @@
+services:
+  vpn:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv6.conf.all.disable_ipv6=1
+    ports:
+      - "8585:8585"   # example: qBittorrent Web UI (add your own service ports here)
+    volumes:
+      - ./config/gluetun:/gluetun
+    environment:
+      - TZ=${TZ}
+      - FIREWALL_OUTBOUND_SUBNETS=${FIREWALL_OUTBOUND_SUBNETS}
+      - VPN_SERVICE_PROVIDER=custom
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_PUBLIC_KEY=${WIREGUARD_PUBLIC_KEY}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
+      - VPN_ENDPOINT_IP=${VPN_ENDPOINT_IP}
+      - VPN_ENDPOINT_PORT=${VPN_ENDPOINT_PORT}
+      - DOT=off
+      - DNS_ADDRESS=1.1.1.1
+    restart: always
+
+  pia-portforward:
+    image: python:3-alpine
+    container_name: pia-portforward
+    network_mode: "service:vpn"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PIA_USER=${PIA_USER}
+      - PIA_PASS=${PIA_PASS}
+      - PIA_SERVER_CN=${PIA_SERVER_CN}
+      - PIA_SERVER_VIP=${PIA_SERVER_VIP}
+      - PIA_TOKEN_FILE=/scripts/pia-token.txt
+      - QBIT_URL=http://localhost:8585
+      - CA_CERT=/scripts/pia-ca.crt
+    volumes:
+      - ./scripts:/scripts
+    command: python3 /scripts/pia-portforward.py
+    depends_on:
+      vpn:
+        condition: service_healthy
+    restart: unless-stopped

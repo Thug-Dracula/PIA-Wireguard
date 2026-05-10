@@ -1,0 +1,4 @@
+.env
+scripts/pia-token.txt
+scripts/pia-ca.crt
+config/
